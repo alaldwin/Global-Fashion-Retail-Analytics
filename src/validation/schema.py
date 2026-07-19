@@ -1,4 +1,11 @@
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DataType
+from pyspark.sql.types import (
+    IntegerType,
+    StringType,
+    DateType,
+    TimestampType,
+    DoubleType,
+    DecimalType,
+)
 
 
 expected_columns = {
@@ -40,8 +47,7 @@ expected_columns = {
         "Quantity",
         "Date",
         "Discount",
-        "Line",
-        "Total",
+        "Line Total",
         "Store ID",
         "Employee ID",
         "Currency",
@@ -70,7 +76,7 @@ expected_columns = {
         "Position"
     },
 
-    "discount": {
+    "discounts": {
         "Start",
         "End",
         "Discont",
@@ -92,7 +98,7 @@ expected_schema = {
         "City": StringType(),
         "Country": StringType(),
         "Gender": StringType(),
-        "Date Of Birth": DataType(),
+        "Date Of Birth": DateType(),
         "Job Title": StringType(),
     },
 
@@ -108,22 +114,20 @@ expected_schema = {
         "Description ZH": StringType(),
         "Color": StringType(),
         "Sizes": StringType(),
-        "Production Cost": StringType()
+        "Production Cost": DoubleType()
     },
 
     "transactions": {
         "Invoice ID": IntegerType(),
-        "Line": StringType(),
         "Customer ID": IntegerType(),
         "Product ID": IntegerType(),
         "Size": StringType(),
         "Color": StringType(),
-        "Unit Price": StringType(),
-        "Quantity": StringType(),
-        "Date": DataType(),
-        "Discount": StringType(),
-        "Line": StringType(),
-        "Total": StringType(),
+        "Unit Price": DoubleType(),
+        "Quantity": IntegerType(),
+        "Date": DateType(),
+        "Discount": DoubleType(),
+        "Line Total": DoubleType(),
         "Store ID": IntegerType(),
         "Employee ID": IntegerType(),
         "Currency": StringType(),
@@ -131,7 +135,7 @@ expected_schema = {
         "SKU": StringType(),
         "Transaction Type": StringType(),
         "Payment Method": StringType(),
-        "Invoice Total": StringType()
+        "Invoice Total": DoubleType()
     },
 
     "stores": {
@@ -139,10 +143,10 @@ expected_schema = {
         "Country": StringType(),
         "City": StringType(),
         "Store Name": StringType(),
-        "Number of Employees": StringType(),
+        "Number of Employees": IntegerType(),
         "ZIP Code": StringType(),
-        "Latitude": StringType(),
-        "Longitude": StringType()
+        "Latitude": DoubleType(),
+        "Longitude": DoubleType()
     },
 
     "employees": {
@@ -152,10 +156,10 @@ expected_schema = {
         "Position": StringType()
     },
 
-    "discount": {
-        "Start": DataType(),
-        "End": DataType(),
-        "Discont": StringType(),
+    "discounts": {
+        "Start": DateType(),
+        "End": DateType(),
+        "Discont": DoubleType(),
         "Description": StringType(),
         "Category": StringType(),
         "Sub Category": StringType()

@@ -21,8 +21,12 @@ def read_csv(spark: SparkSession):
 
         tables = {}
 
-        for file in path.glob("*.csv"):
-            logger.info(f"Reading {file.name}")
+        files = list(path.glob("*.csv"))
+
+        logger.info(f"Found {len(files)} CSV files.")
+
+        for file in files:
+            logger.info(file.name)
 
             df = (
                 spark.read
@@ -33,9 +37,9 @@ def read_csv(spark: SparkSession):
 
             tables[file.stem] = df
 
-            logger.info(f"Successfully loaded {len(tables)} tables.")
+        logger.info(f"Successfully loaded {len(tables)} tables.")
 
-            return tables
+        return tables
 
     except Exception:
         logger.error("Failed to read CSV files.")
