@@ -1,0 +1,60 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyo
+
+
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+.env
+.env.*
+!.env.example
+
+data/raw/*
+data/processed/*
+data/output/*
+
+# Keep folder structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/output/.gitkeep
+
+
+# Logs
+logs/
+*.log
+
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+.vscode/
+
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.python-version
+
+# Ignore uv lock if building a library.
+# Keep it if this is an application.
+# uv.lock
+
+
+# Spark
+metastore_db/
+spark-warehouse/
+derby.log
