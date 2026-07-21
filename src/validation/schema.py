@@ -118,7 +118,8 @@ expected_schema = {
     },
 
     "transactions": {
-        "Invoice ID": IntegerType(),
+        "Invoice ID": StringType(),
+        "Line": IntegerType(),
         "Customer ID": IntegerType(),
         "Product ID": IntegerType(),
         "Size": StringType(),
@@ -135,7 +136,7 @@ expected_schema = {
         "SKU": StringType(),
         "Transaction Type": StringType(),
         "Payment Method": StringType(),
-        "Invoice Total": DoubleType()
+        "Invoice Total": DoubleType(),
     },
 
     "stores": {
@@ -164,4 +165,76 @@ expected_schema = {
         "Category": StringType(),
         "Sub Category": StringType()
     }
+
+}
+
+
+required_columns = {
+    "customers": {
+        "Customer ID",
+        "Name",
+        "Email",
+        "Telephone",
+        "City",
+        "Country",
+        "Gender",
+        "Date Of Birth",
+    },
+
+    "products": {
+        "Product ID",
+        "Category",
+        "Sub Category",
+        "Description EN",
+        "Production Cost",
+    },
+
+    "transactions": {
+        "Invoice ID",
+        "Line",
+        "Customer ID",
+        "Product ID",
+        "Unit Price",
+        "Quantity",
+        "Date",
+        "Line Total",
+        "Store ID",
+        "Employee ID",
+        "Currency",
+        "SKU",
+        "Transaction Type",
+        "Payment Method",
+        "Invoice Total",
+    },
+
+    "stores": {
+        "Store ID",
+        "Country",
+        "City",
+        "Store Name",
+    },
+
+    "employees": {
+        "Employee ID",
+        "Store ID",
+        "Name",
+        "Position",
+    },
+
+    "discounts": {
+        "Start",
+        "End",
+        "Discont",
+    },
+}
+
+
+
+unique_columns = {
+    "customers": ["Customer ID"],
+    "products": ["Product ID"],
+    "transactions": ["Invoice ID", "Line"],
+    "stores": ["Store ID"],
+    "employees": ["Employee ID"],
+    "discounts": ["Start", "End", "Category", "Sub Category"],
 }

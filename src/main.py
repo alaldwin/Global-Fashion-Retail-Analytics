@@ -1,12 +1,15 @@
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import IntegerType, DateType
+
 
 from src.ingestion.extract import read_csv
-from src.validation.validation import validation_columns, validation_schema
+from src.validation.validation import DataValidator
+from src.transformation.transform import transform_data
 
 from src.common.logger import get_logger
 
-from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, DateType
+
 
 logger = get_logger(__name__)
 
@@ -35,18 +38,16 @@ def main():
             print(f"Validation {tablename}")
             print("=" * 40)
             if tablename == "transactions":
+                df = df.withColumn(
+                    "Date",
+                    F.to_date(F.col("Date"))
+                )
 
-                df = df.withColumn("Invoice ID", F.col("Invoice ID").cast(IntegerType()))
-                
-                # 2. Fix the date type issue
-                df = df.withColumn("Date", F.to_date(F.col("Date")))
-
-            validation_columns(tablename, df)
-            validation_schema(tablename, df)
+            DataValidator(tablename, df).run()
 
 
         # Transform
-        # transform_data(tables)
+        transform_data(tables)
 
         # Load
         # write_parquet(tables)
