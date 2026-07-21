@@ -1,15 +1,16 @@
 from pyspark.sql import functions as F
 
-
 from src.common.logger import get_logger
-from src.validation.schema import (
-    expected_columns, 
-    expected_schema, 
-    required_columns, 
-    unique_columns
-)
+
+from config.validation_columns import expected_columns
+from config.validation_schema import expected_schema
+from config.validation_rules import validation_rules
+from config.required_columns import required_columns
+from config.unique_column import unique_columns
+
 
 logger = get_logger(__name__)
+
 
 class DataValidator:
 
@@ -20,27 +21,27 @@ class DataValidator:
 
         
 
-    def validation_columns(tablename: str, df):
+    def validation_columns(self):
 
         logger.info("Start Validate Columns.")
 
-        excepted = expected_columns.get(tablename)
+        excepted = expected_columns.get(self.tablename)
 
         if excepted is None:
-            raise ValueError(f"No Schema defined for {tablename}")
+            raise ValueError(f"No Schema defined for {self.tablename}")
 
-        actual = set(df.columns)
+        actual = set(self.df.columns)
 
         missing = excepted - actual
         extra = actual - excepted
 
         if missing:
-            raise ValueError(f"[{tablename}] Missing Columns: {missing}")
+            raise ValueError(f"[{self.tablename}] Missing Columns: {missing}")
 
         if extra:
-            raise ValueError(f"[{tablename}] extra Columns: {extra}")
+            raise ValueError(f"[{self.tablename}] extra Columns: {extra}")
 
-        logger.info(f"[{tablename}] Column validation passed.")
+        logger.info(f"[{self.tablename}] Column validation passed.")
 
 
 
@@ -82,7 +83,7 @@ class DataValidator:
 
         logger.info(
             "[%s] Column validation passed.",
-            self.table_name
+            self.tablename
         )
 
 
@@ -163,9 +164,107 @@ class DataValidator:
 
 
 
+
+# Validation Rules
+
+    def validation_ranges(self):
+
+        logger.info("Start validation ranges.")
+
+        range_rules = {
+            "transactions": {
+                "Invoice Total": (0, 100000),
+                "Quantity": (1, 100),
+            }
+        }
+
+        rules = range_rules.get(self.tablename, {})
+
+        errors = []
+
+        for column, (min_value, max_value) in rules.items():
+
+            invalid = (
+                self.df.filter(
+                    (F.col(column).cast("double") < min_value) |
+                    (F.col(column).cast("double") > max_value)
+                )
+            )
+
+            invalid_count = invalid.count()
+
+            if invalid_count > 0:
+
+                print(f"\n===== {self.tablename}.{column} =====")
+                print(f"Invalid rows: {invalid_count}")
+
+                invalid.select(
+                    column
+                ).show(100, truncate=False)
+
+                errors.append(
+                    f"{column}: outside range [{min_value}, {max_value}]"
+                )
+
+        logger.info(f"[{self.tablename}] Range validation passed.")
+
+
+
+
+    def show_unique_values(self):
+
+        logger.info("Start validation: Unique Values.")
+
+        print(f"\n{'=' * 80}")
+        print(f"TABLE: {self.tablename.upper()}")
+        print(f"{'=' * 80}")
+
+    # Skip these columns
+        skip_keywords = [
+            "id",
+            "date",
+            "time",
+            "timestamp",
+            "start",
+            "end",
+        ]
+
+        for column in self.df.columns:
+
+            column_lower = column.lower()
+
+            # Skip ID, Date, Start, End, Timestamp columns
+            if any(keyword in column_lower for keyword in skip_keywords):
+                continue
+
+            print(f"\nColumn: {column}")
+
+            display_col = (
+                F.when(F.col(column).isNull(), "<NULL>")
+                .when(F.trim(F.col(column).cast("string")) == "", "<EMPTY>")
+                .when(F.lower(F.trim(F.col(column).cast("string"))) == "none", "<STRING: None>")
+                .when(F.lower(F.trim(F.col(column).cast("string"))) == "null", "<STRING: null>")
+                .otherwise(F.col(column).cast("string"))
+            )
+
+            (
+                self.df
+                .select(display_col.alias(column))
+                .groupBy(column)
+                .count()
+                .orderBy(F.desc("count"))
+                .show(truncate=False)
+            )
+
+        logger.info(f"[{self.tablename}] Unique value profiling completed.")
+
+
     def run_validation(self):
             
-        self.validate_columns()
-        self.validate_schema()
-        self.validate_nulls()
-        self.validate_duplicates()
+        self.validation_columns()
+        self.validation_schema()
+        self.validation_nulls()
+        self.validation_dup()
+
+        self.validation_ranges()
+        self.show_unique_values()
