@@ -1,11 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, DateType
+from pyspark.sql.types import *
 
 
 from src.ingestion.extract import read_csv
 from src.validation.validation import DataValidator
-from src.transformation.transform import transform_data
 
 from src.common.logger import get_logger
 
@@ -43,11 +42,11 @@ def main():
                     F.to_date(F.col("Date"))
                 )
 
-            DataValidator(tablename, df).run()
+            DataValidator(tablename, df).run_validation()
 
 
         # Transform
-        transform_data(tables)
+        # transform_data(tables)
 
         # Load
         # write_parquet(tables)
