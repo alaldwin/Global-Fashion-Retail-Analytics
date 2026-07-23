@@ -31,7 +31,8 @@ class CustomerTransformer:
 
         return self.df
 
-    def check_
+
+    
 
     def clean_trim(self):
 
@@ -54,6 +55,64 @@ class CustomerTransformer:
 
 
 
+    def clean_name(self):
+            
+        self.df = (
+            self.df
+            .withColumn(
+                "name",
+                F.initcap(
+                    F.trim(
+                        F.regexp_replace(
+                            F.regexp_replace(
+                                F.col("name"),
+                                r"[^A-Za-z\s'-]",
+                                ""
+                            ),
+                            r"\s+",
+                            " "
+                        )
+                    )
+                )
+            )
+        )
+
+        return self.df
+
+
+
+    
+
+    def clean_email(self):
+
+        self.df = (
+            self.df
+            .withColumn(
+                "email",
+                F.lower(
+                    F.trim(F.col("email"))
+                )
+            )
+            # Remove spaces inside the email
+            .withColumn(
+                "email",
+                F.regexp_replace(F.col("email"), r"\s+", "")
+            )
+            # Remove "fake_" after the @ symbol
+            .withColumn(
+                "email",
+                F.regexp_replace(
+                    F.col("email"),
+                    r"@fake_",
+                    "@"
+                )
+            )
+        )
+
+        return self.df
+
+
+
     def cast_columns(self) -> DataFrame:
 
         schema = StructType([
@@ -67,6 +126,7 @@ class CustomerTransformer:
             StructField("date_of_birth", DateType(), True),
             StructField("job_title", StringType(), True),
         ])
+
 
 
 
@@ -90,6 +150,8 @@ class CustomerTransformer:
 
     def customer_transform(self) -> DataFrame:
 
-        self.clean_columns()
-
-        return self.df
+        self.rename_columns()
+        self.clean_trim()
+        self.clean_name()
+        self.cast_columns()
+        self.add_metadata()

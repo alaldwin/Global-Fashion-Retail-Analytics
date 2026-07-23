@@ -11,7 +11,7 @@ from config.unique_column import unique_columns
 
 logger = get_logger(__name__)
 
-
+# class of Data Validation
 class DataValidator:
 
 
@@ -20,7 +20,7 @@ class DataValidator:
         self.df = df
 
         
-
+    # validation all columns data
     def validation_columns(self):
 
         logger.info("Start Validate Columns.")
@@ -44,7 +44,7 @@ class DataValidator:
         logger.info(f"[{self.tablename}] Column validation passed.")
 
 
-
+    # vaidation all schemas
     def validation_schema(self):
 
         logger.info("Start Validate Schemas.")
@@ -87,7 +87,7 @@ class DataValidator:
         )
 
 
-
+    # validation Nulls values
     def validation_nulls(self):
 
         logger.info("Start Validation Nulls. ")
@@ -121,7 +121,7 @@ class DataValidator:
         logger.info(f"[{self.tablename}] Null validation passed.")
 
 
-
+    # validation duplications
     def validation_dup(self):
 
         logger.info("Start validation Duplicates.")
@@ -210,7 +210,7 @@ class DataValidator:
 
 
 
-
+# Show all unique values each on tables
     def show_unique_values(self):
 
         logger.info("Start validation: Unique Values.")
@@ -259,6 +259,8 @@ class DataValidator:
         logger.info(f"[{self.tablename}] Unique value profiling completed.")
 
 
+
+# RUN ALL VALIDATIONS
     def run_validation(self):
             
         self.validation_columns()
