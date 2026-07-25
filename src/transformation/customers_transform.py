@@ -87,26 +87,11 @@ class CustomerTransformer:
 
         self.df = (
             self.df
-            .withColumn(
-                "email",
-                F.lower(
-                    F.trim(F.col("email"))
-                )
-            )
+            .withColumn("email", F.lower(F.trim(F.col("email"))))
             # Remove spaces inside the email
-            .withColumn(
-                "email",
-                F.regexp_replace(F.col("email"), r"\s+", "")
-            )
+            .withColumn("email", F.regexp_replace(F.col("email"), r"\s+", ""))
             # Remove "fake_" after the @ symbol
-            .withColumn(
-                "email",
-                F.regexp_replace(
-                    F.col("email"),
-                    r"@fake_",
-                    "@"
-                )
-            )
+            .withColumn("email", F.regexp_replace(F.col("email"), r"@fake_", "@"))
         )
 
         return self.df
@@ -115,8 +100,24 @@ class CustomerTransformer:
 
 
     def clean_phone(self):
-        pass
 
+        self.df = (
+            self.df
+            .withColumn("telephone", F.trim(F.col("telephone")))
+                        
+            .withColumn("telephone", F.regexp_replace(F.col("telephone"), r"[()]", " "))
+
+            .withColumn("telephone", F.regexp_replace(F.col("telehpne"), r"\+\s+", "+"))
+
+            .withColumn("telephone", F.when(F.col("telephone") == "", None).otherwise(F.col("telephone")))
+        )
+        return self.df
+
+
+
+    def clean_city(self):
+
+        pass
 
 
     def cast_columns(self) -> DataFrame:
