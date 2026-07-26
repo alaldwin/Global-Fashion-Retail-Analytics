@@ -15,4 +15,5 @@ spark.range(5).show()
 
 spark.stop()
 
+logger.info(f"the pyspark is already run {spark}")
 print("Finished!")
