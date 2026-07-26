@@ -35,10 +35,6 @@ logs/
 *.log
 
 
-.pytest_cache/
-.coverage
-htmlcov/
-
 
 .vscode/
 
