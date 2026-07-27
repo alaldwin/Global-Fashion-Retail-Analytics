@@ -4,6 +4,7 @@ from pyspark.sql import functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.types import * 
 
+from config import mapping_city
 
 class CustomerTransformer:
 
@@ -117,7 +118,23 @@ class CustomerTransformer:
 
     def clean_city(self):
 
-        pass
+        # Standardize capitalization
+        self.df = self.df.withColumn(
+            "city",
+            F.initcap(F.lower(F.col("city")))
+        )
+
+        city_mapping = mapping_city()
+
+        mapping_expr = F.create_map(
+            *[F.lit(x) for kv in city_mapping.items() for x in kv]
+        )
+
+        self.df = (
+            self.df.withColumn(F.coalesce(mapping_expr[F.col("city")], F.col("city")))
+        )
+
+        return self
 
 
     def cast_columns(self) -> DataFrame:
