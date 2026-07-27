@@ -4,8 +4,11 @@ from pyspark.sql import functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.types import * 
 
+from src.common.logger import get_logger
+
 from config import mapping_city
 
+logger = get_logger(__name__, "transformation.log")
 class CustomerTransformer:
 
     def __init__(self, df: DataFrame):
@@ -14,7 +17,11 @@ class CustomerTransformer:
 
     def rename_columns(self):
 
-        for old in self.df.columns:
+        logger.info("Starting rename_columns()")
+
+        original_col = self.df.columns
+
+        for old in original_col:
 
             new = old.strip().lower()
             new = re.sub(r"[\s\-]+", "_", new)
@@ -22,7 +29,10 @@ class CustomerTransformer:
             new = re.sub(r"_+", "_", new).strip("_")
 
             if old != new:
+                logger.info("Renamed col: '%s' -> '%s'", old, new)
                 self.df = self.df.withColumnRenamed(old, new)
+
+        logger.info("Completed rename_columns()")   
 
         return self
 
@@ -30,6 +40,8 @@ class CustomerTransformer:
     
 
     def clean_trim(self):
+
+        logger.info("Starting clean_trim()")
 
         tokens = ["", "na", "n/a", "none", "null", "-", "_", "unknown"]
 
@@ -189,7 +201,7 @@ class CustomerTransformer:
             .withColumn("customer_id", F.col("customer_id").cast("int"))
             .withColumn("date_of_birth", F.to_date("date_of_birth"))
         )
-
+        logger.info(f"Schema: {self.df.schema.simpleString()}")
         return self
 
 
@@ -209,7 +221,7 @@ class CustomerTransformer:
             .withColumn("source_system", F.lit(source_system))
             .withColumn("load_type", F.lit(load_type))
         )  
-
+        
         return self
 
 

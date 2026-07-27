@@ -1,22 +1,41 @@
-import logging
 
+import logging
 from pathlib import Path
 
-root = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2]
 
-log_dir = root / "logs"
-log_dir.mkdir(parents=True, exist_ok=True)
+LOG_DIR = ROOT / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-log_file = log_dir / "Pipeline.log"
+LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    handlers=[
-        logging.FileHandler(log_file, encoding="utf-8"),
-        logging.StreamHandler(),
-    ],
-)
 
-def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(name)
+def get_logger(name: str, filename: str) -> logging.Logger:
+    """
+    Create or return a logger that writes to its own log file.
+    """
+
+    logger = logging.getLogger(name)
+
+    if logger.handlers:
+        return logger
+
+    logger.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(LOG_FORMAT)
+
+    file_handler = logging.FileHandler(
+        LOG_DIR / filename,
+        encoding="utf-8"
+    )
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    logger.propagate = False
+
+    return logger

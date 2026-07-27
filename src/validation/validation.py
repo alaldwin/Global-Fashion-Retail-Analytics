@@ -9,7 +9,7 @@ from config.required_columns import required_columns
 from config.unique_column import unique_columns
 
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, "validation.log")
 
 # class of Data Validation
 class DataValidator:

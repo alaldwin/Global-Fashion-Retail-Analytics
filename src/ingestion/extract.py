@@ -3,7 +3,7 @@ from src.common.logger import get_logger
 
 from pyspark.sql import SparkSession
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, "ingestion.log")
 
 def read_csv(spark: SparkSession):
 
