@@ -4,6 +4,7 @@ from pyspark.sql import functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.types import * 
 
+from config import mapping_city
 
 class CustomerTransformer:
 
@@ -11,25 +12,19 @@ class CustomerTransformer:
         self.df = df
 
 
-    def rename_columns(self) -> DataFrame:
+    def rename_columns(self):
 
         for old in self.df.columns:
-            # convert to lowercase
+
             new = old.strip().lower()
-            # Replace spaces and hyphens with underscores
             new = re.sub(r"[\s\-]+", "_", new)
-            # Remove special characters
             new = re.sub(r"[^0-9a-z_]+", "", new)
-            # Remove duplicate underscores
             new = re.sub(r"_+", "_", new).strip("_")
-            # append cleaned column name to the list
 
             if old != new:
                 self.df = self.df.withColumnRenamed(old, new)
 
-            self.df.printSchema()
-
-        return self.df
+        return self
 
 
     
@@ -52,32 +47,18 @@ class CustomerTransformer:
 
         self.df.show(10, truncate=False)
 
+        return self
+
 
 
 
     def clean_name(self):
 
         self.df = (
-            self.df
-            .withColumn(
-                "name",
-                F.initcap(
-                    F.trim(
-                        F.regexp_replace(
-                            F.regexp_replace(
-                                F.col("name"),
-                                r"[^A-Za-z\s'-]",
-                                ""
-                            ),
-                            r"\s+",
-                            " "
-                        )
-                    )
-                )
+            self.df.withColumn("name", F.initcap(F.trim(F.regexp_replace(F.regexp_replace(F.col("name"), r"[^A-Za-z\s'-]", ""), r"\s+", " "))))
             )
-        )
 
-        return self.df
+        return self
 
 
 
@@ -94,7 +75,7 @@ class CustomerTransformer:
             .withColumn("email", F.regexp_replace(F.col("email"), r"@fake_", "@"))
         )
 
-        return self.df
+        return self
 
 
 
@@ -107,32 +88,109 @@ class CustomerTransformer:
                         
             .withColumn("telephone", F.regexp_replace(F.col("telephone"), r"[()]", " "))
 
-            .withColumn("telephone", F.regexp_replace(F.col("telehpne"), r"\+\s+", "+"))
+            .withColumn("telephone", F.regexp_replace(F.col("telephone"), r"\s+", "+"))
 
             .withColumn("telephone", F.when(F.col("telephone") == "", None).otherwise(F.col("telephone")))
         )
-        return self.df
+        return self
 
 
 
     def clean_city(self):
 
-        pass
+        # Standardize capitalization
+        self.df = self.df.withColumn(
+            "city",
+            F.initcap(F.lower(F.col("city")))
+        )
+
+        city_mapping = mapping_city()
+
+        mapping_expr = F.create_map(
+            *[F.lit(x) for kv in city_mapping.items() for x in kv]
+        )
+
+        self.df = self.df.withColumn("city", F.coalesce(mapping_expr[F.col("city")], F.col("city")))
+
+        return self
 
 
-    def cast_columns(self) -> DataFrame:
 
-        schema = StructType([
-            StructField("customer_id", IntegerType(), False),
-            StructField("name", StringType(), False),
-            StructField("email", StringType(), True),
-            StructField("phone", StringType(), True),
-            StructField("city", StringType(), True),
-            StructField("country", StringType(), True),
-            StructField("gender", StringType(), True),
-            StructField("date_of_birth", DateType(), True),
-            StructField("job_title", StringType(), True),
-        ])
+    def clean_country(self):
+
+        country_mapping = {
+            "中国": "China",
+            "España": "Spain",
+            "Deutschland": "Germany",
+        }
+
+        country_expr = F.create_map( 
+            *[F.lit(x) for kv in country_mapping.items() for x in kv]
+        )
+
+        self.df= (
+            self.df
+            .withColumn(F.coalesce(country_expr[F.col("country")], F.col("country")))
+            
+        )
+
+        return self
+
+
+
+
+    def clean_gender(self):
+
+        gender = {
+            "Male": "M",
+            "Female": "F",
+            "male": "M",
+            "female": "F",
+            "m": "M",
+            "f": "F",
+        }
+
+
+        expr = F.create_map(
+            *[F.lit(x) for kv in gender.items() for x in kv]
+        )
+
+        self.df = self.df.withColumn(
+            "gender", F.coalesce(expr[F.col("gender")], F.col("gender"))
+        )
+
+        return self
+
+    
+
+
+    def clean_job_title(self):
+
+        self.df = (
+            self.df
+            .withColumn(
+                "job_title",
+                F.trim(F.col("job_title"))
+            )
+            .withColumn(
+                "job_title",
+                F.regexp_replace(F.col("job_title"), r"\s+", " ")
+            )
+        )
+
+        return self
+
+
+
+    def cast_columns(self):
+
+        self.df = (
+            self.df
+            .withColumn("customer_id", F.col("customer_id").cast("int"))
+            .withColumn("date_of_birth", F.to_date("date_of_birth"))
+        )
+
+        return self
 
 
 
@@ -152,13 +210,33 @@ class CustomerTransformer:
             .withColumn("load_type", F.lit(load_type))
         )  
 
-        return self.df
+        return self
 
 
-    def customer_transform(self) -> DataFrame:
 
-        self.rename_columns()
-        self.clean_trim()
-        self.clean_name()
-        self.cast_columns()
-        self.add_metadata()
+    def customer_transform(
+        self,
+        batch_date,
+        source_system,
+        load_type
+    ):
+
+        return (
+            self
+            .rename_columns()
+            .clean_trim()
+            .clean_name()
+            .clean_email()
+            .clean_phone()
+            .clean_city()
+            .clean_country()
+            .clean_gender()
+            .clean_job_title()
+            .cast_columns()
+            .add_metadata(
+                batch_date,
+                source_system,
+                load_type
+            )
+            .df
+        )

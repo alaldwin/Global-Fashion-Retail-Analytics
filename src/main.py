@@ -5,6 +5,7 @@ from pyspark.sql.types import *
 
 from src.ingestion.extract import read_csv
 from src.validation.validation import DataValidator
+from src.transformation.transform_manager import transform_tables
 
 from src.common.logger import get_logger
 
@@ -46,7 +47,7 @@ def main():
 
 
         # Transform
-        # transform_data(tables)
+
 
         # Load
         # write_parquet(tables)
