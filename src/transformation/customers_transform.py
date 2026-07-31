@@ -6,9 +6,13 @@ from pyspark.sql.types import *
 
 from src.common.logger import get_logger
 
-from config import mapping_city
+from config.mapping_loc import COUNTRY_MAPPING
+from config.mapping_city import CITY_MAPPING
 
 logger = get_logger(__name__, "transformation.log")
+
+
+
 class CustomerTransformer:
 
     def __init__(self, df: DataFrame):
@@ -43,7 +47,7 @@ class CustomerTransformer:
 
         logger.info("Starting clean_trim()")
 
-        tokens = ["", "na", "n/a", "none", "null", "-", "_", "unknown"]
+        tokens = ["", "na", "n/a", "none", "null", "NULL", "-", "_", "unknown"]
 
         for c, t in self.df.dtypes:
 
@@ -66,6 +70,8 @@ class CustomerTransformer:
 
     def clean_name(self):
 
+        logger.info("Starting clean_name()")
+
         self.df = (
             self.df.withColumn("name", F.initcap(F.trim(F.regexp_replace(F.regexp_replace(F.col("name"), r"[^A-Za-z\s'-]", ""), r"\s+", " "))))
             )
@@ -77,6 +83,8 @@ class CustomerTransformer:
     
 
     def clean_email(self):
+
+        logger.info("Starting clean_email()")
 
         self.df = (
             self.df
@@ -94,6 +102,8 @@ class CustomerTransformer:
 
     def clean_phone(self):
 
+        logger.info("Starting clean_phone()")
+
         self.df = (
             self.df
             .withColumn("telephone", F.trim(F.col("telephone")))
@@ -110,13 +120,15 @@ class CustomerTransformer:
 
     def clean_city(self):
 
+        logger.info("Starting clean_city()")
+
         # Standardize capitalization
         self.df = self.df.withColumn(
             "city",
             F.initcap(F.lower(F.col("city")))
         )
 
-        city_mapping = mapping_city()
+        city_mapping = CITY_MAPPING
 
         mapping_expr = F.create_map(
             *[F.lit(x) for kv in city_mapping.items() for x in kv]
@@ -130,20 +142,20 @@ class CustomerTransformer:
 
     def clean_country(self):
 
-        country_mapping = {
-            "中国": "China",
-            "España": "Spain",
-            "Deutschland": "Germany",
-        }
+        logger.info("Starting clean_country()")
 
-        country_expr = F.create_map( 
-            *[F.lit(x) for kv in country_mapping.items() for x in kv]
+        country_map = COUNTRY_MAPPING
+
+        mapping_expr = F.create_map(
+            *[F.lit(x) for kv in country_map.items() for x in kv]
         )
 
-        self.df= (
-            self.df
-            .withColumn(F.coalesce(country_expr[F.col("country")], F.col("country")))
-            
+        self.df = self.df.withColumn(
+            "country",
+            F.coalesce(
+                mapping_expr[F.col("country")],
+                F.col("country")
+            )
         )
 
         return self
@@ -152,6 +164,8 @@ class CustomerTransformer:
 
 
     def clean_gender(self):
+
+        logger.info("Starting clean_gender()")
 
         gender = {
             "Male": "M",
@@ -178,6 +192,8 @@ class CustomerTransformer:
 
     def clean_job_title(self):
 
+        logger.info("Starting clean_job_title()")
+
         self.df = (
             self.df
             .withColumn(
@@ -195,6 +211,8 @@ class CustomerTransformer:
 
 
     def cast_columns(self):
+
+        logger.info("Starting cast_columns()")
 
         self.df = (
             self.df

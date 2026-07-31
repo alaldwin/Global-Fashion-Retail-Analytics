@@ -5,6 +5,8 @@ from pyspark.sql import SparkSession
 
 logger = get_logger(__name__, "ingestion.log")
 
+logger.info("\n Ingestion SCANNING...")
+
 def read_csv(spark: SparkSession):
 
     try:

@@ -10,7 +10,8 @@ from src.common.logger import get_logger
 logger = get_logger(__name__, "transformation.log")
 
 
-class DiscoundTransform:
+
+class DiscountTransformer:
 
     def __init__(self, df: DataFrame):
         self.df = df
@@ -18,7 +19,9 @@ class DiscoundTransform:
 
     def rename_columns(self):
 
-        for old in self.df.columns():
+        logger.info("Starting rename_columns()")
+
+        for old in self.df.columns:
 
             new = old.strip().lower()
             new = re.sub(r"[\s\-]+", "_", new)
@@ -35,15 +38,13 @@ class DiscoundTransform:
 
     def cast_columns(self):
 
+        logger.info("Starting cast_columns()")
+
         self.df = (
             self.df
-            .withColumn("discont", "discount")
-            .withColumnRenamed("discount", F.col("discount").cast("decimal(10, 2)"))
-            .withColumn("start", F.to_date("start"))
-            .withColumn("end", F.to_date("end"))
-            )
-        
-        logger.info(f"Schema: {self.df.schema.simpleString()}")
+            .withColumn("start", F.to_date(F.col("start")))
+            .withColumn("end", F.to_date(F.col("end")))
+        )
 
         return self
 
@@ -68,7 +69,7 @@ class DiscoundTransform:
 
 
 
-    def discount_tranform(
+    def discount_transform(
         self,
         batch_date,
         source_system,
@@ -78,6 +79,7 @@ class DiscoundTransform:
         return (
             self
             .rename_columns()
+            .cast_columns()
             .add_metadata(
                 batch_date,
                 source_system,

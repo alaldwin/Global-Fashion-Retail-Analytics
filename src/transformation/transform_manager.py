@@ -1,26 +1,44 @@
 
 from src.transformation.customers_transform import CustomerTransformer
+from src.transformation.discounts_transform import DiscountTransformer
+from src.transformation.employees_transform import EmployeesTransformer
+from src.transformation.products_transform import ProductsTransformer
+from src.transformation.stores_transform import StoresTransformer
+from src.transformation.transactions_transform import TransactionsTransformer
+
+from src.common.logger import get_logger
+
+logger = get_logger(__name__, "transformation.log")
 
 TRANSFORMATION = {
-    "customer": CustomerTransformer,
+    "customers": CustomerTransformer,
+    "discounts": DiscountTransformer,
+    "employees": EmployeesTransformer,
+    "products": ProductsTransformer,
+    "stores": StoresTransformer,
+    "transactions": TransactionsTransformer,
 }
 
-def transform_tables(tables, batch_date, source_system, load_type):
 
-    transformed = {}
+logger.info("\n Transformation SCANNING...")
 
-    for table_name, df in tables.items():
-        transformer_cols = TRANSFORMATION.get(table_name)
 
-        if transformer_cols:
-            transformer = transformer_cols(df)
-            transform_method = getattr(transformer, f"{table_name[:-1]}_transform")
-            transformed[table_name] = transform_method(
-                batch_date=batch_date,
-                source_system=source_system,
-                load_type=load_type,
-            )
-        else:
-            transformed[table_name] = df
+def transform_tables(table_name, df, batch_date, source_system, load_type):
 
-    return transformed
+    transformer_cls = TRANSFORMATION.get(table_name)
+
+    if transformer_cls is None:
+        return df
+
+    transformer = transformer_cls(df)
+
+    transform_method = getattr(
+        transformer,
+        f"{table_name[:-1]}_transform"
+    )
+
+    return transform_method(
+        batch_date=batch_date,
+        source_system=source_system,
+        load_type=load_type,
+    )
