@@ -1,6 +1,6 @@
 ## Folder Structure
 
-`
+```
 project-name/
 │
 ├── config/
@@ -47,4 +47,4 @@ project-name/
 ├── requirements.txt
 ├── Makefile
 └── README.md
-`
+```
