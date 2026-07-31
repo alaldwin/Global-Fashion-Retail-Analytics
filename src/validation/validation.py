@@ -9,7 +9,9 @@ from config.required_columns import required_columns
 from config.unique_column import unique_columns
 
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, "validation.log")
+
+logger.info("\n Validations SCANNING...")
 
 # class of Data Validation
 class DataValidator:
@@ -210,54 +212,6 @@ class DataValidator:
 
 
 
-# Show all unique values each on tables
-    def show_unique_values(self):
-
-        logger.info("Start validation: Unique Values.")
-
-        print(f"\n{'=' * 80}")
-        print(f"TABLE: {self.tablename.upper()}")
-        print(f"{'=' * 80}")
-
-    # Skip these columns
-        skip_keywords = [
-            "id",
-            "date",
-            "time",
-            "timestamp",
-            "start",
-            "end",
-        ]
-
-        for column in self.df.columns:
-
-            column_lower = column.lower()
-
-            # Skip ID, Date, Start, End, Timestamp columns
-            if any(keyword in column_lower for keyword in skip_keywords):
-                continue
-
-            print(f"\nColumn: {column}")
-
-            display_col = (
-                F.when(F.col(column).isNull(), "<NULL>")
-                .when(F.trim(F.col(column).cast("string")) == "", "<EMPTY>")
-                .when(F.lower(F.trim(F.col(column).cast("string"))) == "none", "<STRING: None>")
-                .when(F.lower(F.trim(F.col(column).cast("string"))) == "null", "<STRING: null>")
-                .otherwise(F.col(column).cast("string"))
-            )
-
-            (
-                self.df
-                .select(display_col.alias(column))
-                .groupBy(column)
-                .count()
-                .orderBy(F.desc("count"))
-                .show(truncate=False)
-            )
-
-        logger.info(f"[{self.tablename}] Unique value profiling completed.")
-
 
 
 # RUN ALL VALIDATIONS
@@ -269,4 +223,3 @@ class DataValidator:
         self.validation_dup()
 
         self.validation_ranges()
-        self.show_unique_values()

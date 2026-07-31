@@ -7,11 +7,11 @@ from src.ingestion.extract import read_csv
 from src.validation.validation import DataValidator
 from src.transformation.transform_manager import transform_tables
 
+
 from src.common.logger import get_logger
 
+logger = get_logger(__name__, "pipeline.log")
 
-
-logger = get_logger(__name__)
 
 def main():
 
@@ -27,27 +27,44 @@ def main():
     try:
 
         logger.info("Reading CSV files...")
+
+        print("\n READING TABLES: ")
         tables = read_csv(spark)
 
-        logger.info("Starting validation...")
+        
+        transformed_tables = {}
 
-
-        # Validate
         for tablename, df in tables.items():
+
             print("=" * 40)
             print(f"Validation {tablename}")
             print("=" * 40)
+
             if tablename == "transactions":
                 df = df.withColumn(
                     "Date",
                     F.to_date(F.col("Date"))
                 )
 
+        # Validate
+            print("\n VALIDATION: ")
+            logger.info("Starting Validation...")
             DataValidator(tablename, df).run_validation()
 
 
-        # Transform
 
+        for tablename, df in tables.items():
+
+        # Transform
+            print("\n TRANSFORMATIONS:  ")
+            logger.info("Starting Transformation...")
+            transformed_tables[tablename] = transform_tables(
+                    table_name=tablename,
+                    df=df,
+                    batch_date="2026-07-31",
+                    source_system="csv",
+                    load_type="full",
+                )
 
         # Load
         # write_parquet(tables)
