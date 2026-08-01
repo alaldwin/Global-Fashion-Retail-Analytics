@@ -25,26 +25,11 @@ class DiscountTransformer:
 
             new = old.strip().lower()
             new = re.sub(r"[\s\-]+", "_", new)
-            new = re.sub(r"[0-9a-z_]+", "", new)
+            new = re.sub(r"[^a-z0-9_]+", "", new)
             new = re.sub(r"_+", "_", new).strip("_")
 
             if old != new:
                 self.df = self.df.withColumnRenamed(old, new)
-
-        return self
-
-
-
-
-    def cast_columns(self):
-
-        logger.info("Starting cast_columns()")
-
-        self.df = (
-            self.df
-            .withColumn("start", F.to_date(F.col("start")))
-            .withColumn("end", F.to_date(F.col("end")))
-        )
 
         return self
 
@@ -79,7 +64,6 @@ class DiscountTransformer:
         return (
             self
             .rename_columns()
-            .cast_columns()
             .add_metadata(
                 batch_date,
                 source_system,

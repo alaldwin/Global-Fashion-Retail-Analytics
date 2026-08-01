@@ -23,14 +23,20 @@ TRANSFORMATION = {
 logger.info("\n Transformation SCANNING...")
 
 
-def transform_tables(table_name, df, batch_date, source_system, load_type):
+def transform_tables(
+        table_name, 
+        df, 
+        batch_date, 
+        source_system, 
+        load_type
+    ):
 
-    transformer_cls = TRANSFORMATION.get(table_name)
+    transformer_cols = TRANSFORMATION.get(table_name)
 
-    if transformer_cls is None:
+    if transformer_cols is None:
         return df
 
-    transformer = transformer_cls(df)
+    transformer = transformer_cols(df)
 
     transform_method = getattr(
         transformer,

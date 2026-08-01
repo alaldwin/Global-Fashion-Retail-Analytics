@@ -24,7 +24,7 @@ class ProductsTransformer:
             
             new = old.strip().lower()
             new = re.sub(r"[\s\-]+", "_", new)
-            new = re.sub(r"[0-9a-z_]+", "", new)
+            new = re.sub(r"[^a-z0-9_]+", "", new)
             new = re.sub(r"_+", "_", new).strip("_")
 
             if old != new:
