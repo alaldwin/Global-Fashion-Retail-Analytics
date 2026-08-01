@@ -34,16 +34,13 @@ project-name/
 │
 ├── tests/
 │
-├── docker/
 │
 ├── logs/
 │
-├── configs/
 │
 ├── bash/
 │
 │
-├── docker-compose.yml
 ├── requirements.txt
 ├── Makefile
 └── README.md
