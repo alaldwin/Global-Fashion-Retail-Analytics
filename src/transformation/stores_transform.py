@@ -39,8 +39,8 @@ class StoresTransformer:
 
         self.df = (
             self.df
-            .withColumn("latitude",F.col("latitude").cast(DecimalType(2,10)))
-            .withColumn("longitude",F.col("longitude").cast(DecimalType(2,10)))
+            .withColumn("latitude", F.col("latitude").cast(DecimalType(10, 6)))
+            .withColumn("longitude", F.col("longitude").cast(DecimalType(10, 6)))
         )
 
         return self

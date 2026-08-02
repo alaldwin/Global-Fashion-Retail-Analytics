@@ -60,9 +60,7 @@ class CustomerTransformer:
 
                 self.df = self.df.withColumn(c, F.when(F.lower(F.col(c)).isin(tokens), None)
                                              .otherwise(F.col(c)))
-
-        self.df.show(10, truncate=False)
-
+                
         return self
 
 
@@ -219,7 +217,7 @@ class CustomerTransformer:
             .withColumn("customer_id", F.col("customer_id").cast("int"))
             .withColumn("date_of_birth", F.to_date("date_of_birth"))
         )
-        logger.info(f"Schema: {self.df.schema.simpleString()}")
+        
         return self
 
 
