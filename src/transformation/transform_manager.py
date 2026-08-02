@@ -20,7 +20,7 @@ TRANSFORMATION = {
 }
 
 
-logger.info("\n Transformation SCANNING...")
+logger.info("\n TRANSFORMATION SCANNING...")
 
 
 def transform_tables(

@@ -1,11 +1,12 @@
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import *
+from datetime import date
 
+from pyspark.sql import SparkSession, functions as F
+from pyspark.sql.types import *
 
 from src.ingestion.extract import read_csv
 from src.validation.validation import DataValidator
 from src.transformation.transform_manager import transform_tables
+from src.loaded.load import write_postgresql
 
 
 from src.common.logger import get_logger
@@ -17,17 +18,16 @@ def main():
 
     logger.info("Pipeline started.")
 
-    spark = (
+    Spark= (
         SparkSession.builder
-        .appName("Retail")
+        .appName("Retail Data Pipeline")
         .getOrCreate()
     )
-
 
     try:
 
         print("\n READING TABLES... ")
-        tables = read_csv(spark)
+        tables = read_csv(Spark)
 
         
         transformed_tables = {}
@@ -54,20 +54,27 @@ def main():
 
         # Transform
             print("\n TRANSFORMATIONS... ")
+
+            batch_date = date.today().isoformat()
+
             transformed_tables[tablename] = transform_tables(
                     table_name=tablename,
                     df=df,
-                    batch_date="2026-07-31",
+                    batch_date=batch_date,
                     source_system="csv",
                     load_type="full",
                 )
 
         # Load
-        # write_parquet(tables)
+        print("\n LOADING... ")
+        write_postgresql(
+            transformed_tables, 
+            batch_date=batch_date
+            )
 
     finally:
         print("Stopping Spark")
-        spark.stop()
+        Spark.stop()
 
 if __name__ == "__main__":
     main()
