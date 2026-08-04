@@ -11,6 +11,8 @@ from src.loaded.load import write_postgresql
 
 from src.common.logger import get_logger
 
+
+
 logger = get_logger(__name__, "pipeline.log")
 
 
@@ -18,11 +20,12 @@ def main():
 
     logger.info("Pipeline started.")
 
-    Spark= (
-        SparkSession.builder
-        .appName("Retail Data Pipeline")
+    Spark = (
+        SparkSession
+        .builder
+        .appName("Retail")
         .getOrCreate()
-    )
+        )
 
     try:
 
@@ -66,7 +69,7 @@ def main():
                 )
 
         # Load
-        print("\n LOADING... ")
+        print("\n  LOADING...  ")
         write_postgresql(
             transformed_tables, 
             batch_date=batch_date
