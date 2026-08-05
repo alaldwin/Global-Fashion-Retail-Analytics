@@ -1,14 +1,25 @@
-from pathlib import Path
+
+import os
 from pyspark.sql import SparkSession
+from dotenv import load_dotenv
 
-jar = Path(__file__).resolve().parents[1] / "jars" / "postgresql-42.7.7.jar"
-
-print(jar)
-print(jar.exists())
+load_dotenv()
 
 spark = (
     SparkSession.builder
     .appName("Retail")
-    .config("spark.jars", str(jar))
+
+    .config("spark.hadoop.fs.s3a.access.key",
+            os.getenv("AWS_ACCESS_KEY_ID"))
+
+    .config("spark.hadoop.fs.s3a.secret.key",
+            os.getenv("AWS_SECRET_ACCESS_KEY"))
+
+    .config("spark.hadoop.fs.s3a.endpoint",
+            "s3.amazonaws.com")
+
+    .config("spark.hadoop.fs.s3a.aws.credentials.provider",
+            "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+
     .getOrCreate()
 )

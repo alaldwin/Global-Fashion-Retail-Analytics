@@ -1,54 +1,32 @@
 import os
-import time
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
 
 from src.common.logger import get_logger
-
-load_dotenv()
 
 logger = get_logger(__name__, "pipeline.log")
 
 logger.info("LOADING SCANNING...")
 
 
-def write_postgresql(tables, batch_date):
+def write_s3(tables, batch_date):
 
-    engine = create_engine(
-        f"postgresql+psycopg2://"
-        f"{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-        f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}"
-        f"/{os.getenv('DB_NAME')}"
-    )
+    
 
-    print(engine)
+    bucket = os.getenv("S3_BUCKET_NAME")
+    prefix = os.getenv("S3_BASE_PREFIX")    
 
-    try:
-        with engine.connect():
-            print("✅ Connected to PostgreSQL")
-    except Exception:
-        import traceback
-        traceback.print_exc()
-        raise
+    for table_name, df in tables.items():
 
-    for tablename, df in tables.items():
-
-        start = time.time()
-
-        print(f"Converting {tablename}...")
-        pdf = df.toPandas()
-        print(f"toPandas: {time.time() - start:.2f}s")
-
-        start = time.time()
-
-        pdf.to_sql(
-            name=tablename,
-            con=engine,
-            if_exists="append",
-            index=False,
-            chunksize=1000
+        output_path = (
+            f"s3a://{bucket}/{prefix}/"
+            f"{table_name}/batch_date={batch_date}"
         )
 
-        print(f"to_sql: {time.time() - start:.2f}s")
+        print(output_path)
 
-    print("\nAll tables loaded successfully.")
+        (
+            df.write
+            .mode("overwrite")
+            .parquet(output_path)
+        )
+
+        print(f"Loaded {table_name}")

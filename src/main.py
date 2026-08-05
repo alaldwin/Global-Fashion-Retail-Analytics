@@ -6,8 +6,8 @@ from pyspark.sql.types import *
 from src.ingestion.extract import read_csv
 from src.validation.validation import DataValidator
 from src.transformation.transform_manager import transform_tables
-from src.loaded.load import write_postgresql
-
+from src.loaded.load import write_s3
+from config.spark_session import spark
 
 from src.common.logger import get_logger
 
@@ -20,12 +20,10 @@ def main():
 
     logger.info("Pipeline started.")
 
-    Spark = (
-        SparkSession
-        .builder
-        .appName("Retail")
-        .getOrCreate()
-        )
+
+    Spark = spark
+    print(spark.sparkContext._jvm.org.apache.hadoop.util.VersionInfo.getVersion())
+
 
     try:
 
@@ -70,10 +68,10 @@ def main():
 
         # Load
         print("\n  LOADING...  ")
-        write_postgresql(
-            transformed_tables, 
+        write_s3(
+            transformed_tables,
             batch_date=batch_date
-            )
+        )
 
     finally:
         print("Stopping Spark")
